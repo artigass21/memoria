@@ -1,0 +1,33 @@
+﻿869469, Artigas Subiras, Adrián, T, 1, A
+873026, Becerril Granada, Adrián, T, 1, A
+
+
+Lo que hacemos al principio es clonar tres máquinas de la máquina host de la práctica 4 que las llamamos ‘p5-base’, ‘p5-1’ y ‘p5-2’. A continuación lo que hacemos es configurar el nuevo disco en cada una de las máquinas. Para ello lo que tendremos que hacer en cada una de ellas es irnos a Configuración → Almacenamiento → Controlador : SATA → Añadir conexión → Disco Duro → Crear → VDI → Tamaño de 32MB.
+
+
+PARTE 1:
+
+
+Después lo que hacemos es instalar en las máquinas el paquete lvm2 con ‘sudo apt install lvm2. Una vez instalado, comprobamos  con systemctl list-units que el servicio de lvm2 está corriendo. A continuación instalamos los paquetes ‘gdisk’ y ‘parted’ con ‘sudo apt install’. Lo siguiente que hacemos es generar la tabla de particiones de GUID con el comando ‘sudo parted /dev/sdb mklabel gpt’, posteriormente comprobamos que se ha creado con el comando ‘sudo fdisk -l’. Para crear las dos particiones de 16MB lo que hacemos es insertar los comandos ‘sudo parted /dev/sdb mkpart p1 1MB 17MB’ y ‘sudo parted /dev/sdb mkpart p1 17MB 33MB’ y comprobamos que estén alineadas con ‘sudo parted /dev/sdb align-check optimal 1/2’, devolviendo un 1, siendo el alineamiento correcto.
+Para las particiones se crean los sistemas de ficheros correspondientes con el siguiente comando: ‘sudo mkfs -t ext3 /dev/sdb1 && sudo mkfs -t ext4 /dev/sdb2’ y se montan con el comando: ‘sudo mount -t ext3 /dev/sdb1 /media && sudo mount -t ext4 /dev/sdb2 /media’. Comprobamos que se han montado bien con el comando: cat /etc/mtab, viendo que nos aparece debajo del todo: /dev/sdb1 /media ext3 rw,relatime 0 0 y /dev/sdb2 /media ext4 rw,relatime 0 0.
+
+
+PARTE 2: 
+
+
+En la segunda parte lo que hacemos es realizar el script correspondiente al enunciado con los comandos ‘sfdisk -s’, ‘sfdisk -l’ y ‘dh -hT’, conectándonos mediante una conexión ssh como en la práctica 4 a la máquina que nos pasan como primer parámetro, comprobando antes si esta máquina responde a un ping. Cabe destacar en el script, la última norma que pone en el enunciado (mostrar la información del sistema de ficheros), para no mostrar ‘tmpfs’, hemos decidido usar el comando ‘grep -v \”tmpfs\”.
+
+
+PARTE 3:
+
+
+Añadimos a la máquina que hemos usado en la primera parte un nuevo disco duro de 32MB, después le instalamos lvm2 mediante el comando ‘sudo apt install lvm2’. Una vez ya todo instalado, creamos la partición tipo LVM con la siguiente secuencia de comandos y acciones: sudo parted /dev/sdc →  (parted) mklabel gpt → (parted) mkpart primary 32MB 100% → (parted) set 1 lvm on → (parted) quit.
+
+
+Para poder lanzar el script ‘practica5_parte3_vg.sh’ con el comando ‘sudo ./practica5_parte3_vg.sh vg_p5 /dev/sdc1 /dev/sdb1 /dev/sdb2’
+
+
+, primero tendremos que hacer lo siguiente: desmontamos las particiones de la parte 1 (sudo umount /mnt/ext3 && sudo umount /mnt/ext4). El número de volúmenes físicos es 2.
+
+
+Para acabar una vez que el volumen lógico está creado, lanzamos el script practica5_parte3_lv.sh y podemos observar como el volumen lógico y sus sistemas de ficheros se extienden correctamente
